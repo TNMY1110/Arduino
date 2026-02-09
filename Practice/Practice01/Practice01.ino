@@ -34,12 +34,14 @@ void loop() {
   if(isOn)
   {
     digitalWrite(ledPin, HIGH); // LED 켜기
-    // digitalWrite(YledPin, HIGH); // LED 켜기
+    delay(sensorValue);
+
+    digitalWrite(ledPin, LOW); // LED 끄기
+    delay(sensorValue);
   }
 
   else
   {
     digitalWrite(ledPin, LOW); // LED 끄기
-    // digitalWrite(YledPin, LOW); // LED 켜기
   }  
 }
