@@ -7,6 +7,9 @@ const int echoPin = 10; // 에코
 long duration;
 int distance;
 
+int motorspeed = 255;
+int disspeed = 30;
+
 void setup() 
 {
   pinMode(AA, OUTPUT);
@@ -27,17 +30,23 @@ void loop()
   duration = pulseIn(echoPin, HIGH);  // 돌아온 시간
   distance = duration * 0.034 / 2;  // 거리 계산
 
-  if(distance <= 5)   // 거리가 5 이하일 때
+  if(distance >= 25)    // 거리가 25 이상이면
   {
-    digitalWrite(AA, LOW);    // 정지
-    digitalWrite(AB, LOW);
+    motorspeed = 200;
   }
-  else    // 아니라면
+  else if(distance >= 15)   // 거리가 25 미만 15 이상일 때
   {
-    digitalWrite(AA, HIGH);   // 모터 작동
-    digitalWrite(AB, LOW);
+    motorspeed = map(distance, 15, 25, 100, 200); // 맵 함수를 사용해 속도 조절
   }
+  else   // 거리가 15 미만일 때
+  {
+    motorspeed = 0;
+  }
+  analogWrite(AA, motorspeed);    // 정지
+  digitalWrite(AB, LOW);
 
   Serial.print("Distance: ");
   Serial.println(distance);
+
+  delay(50);
 }
