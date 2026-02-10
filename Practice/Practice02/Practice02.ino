@@ -12,13 +12,17 @@ void setup()
   myservo.attach(9);
   pinMode(ledPin, OUTPUT);
   pinMode(YledPin, OUTPUT);
+  Serial.begin(9600);
 }
 
 void loop() 
 {
   sensorValue = analogRead(sensorPin);
+  Serial.println(sensorValue);
+
   servoangle = map(sensorValue, 0, 1023, 0, 180);
   myservo.write(servoangle);  // 서보 모터 작동
+  
 
   if(servoangle >= 30 && servoangle <= 150)
   {
