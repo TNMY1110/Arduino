@@ -19,16 +19,16 @@ const int output = 2;     // 핀 번호
 const int buttonPin = 4;  // 핀 번호
 
 // Variables will change:
-int ledState = LOW;          // the current state of the output pin   // led 출력 상태
-int buttonState;             // the current reading from the input pin    // 버튼 상태
-int lastButtonState = LOW;   // the previous reading from the input pin   // 마지막 버튼 상태
+int ledState = LOW;          // 출력 핀의 현재 상태
+int buttonState;             // 입력 핀에서 나오는 전류 읽기
+int lastButtonState = LOW;   // 입력 핀의 이전 측정값
 
 // the following variables are unsigned longs because the time, measured in
-// milliseconds, will quickly become a bigger number than can be stored in an int.  // 노이즈를 무시하기 위한 타이머 역할
-unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+// 밀리초는 int에 저장할 수 있는 값보다 크게 변하므로 long타입  // 노이즈를 무시하기 위한 타이머 역할
+unsigned long lastDebounceTime = 0;  // 출력 핀이 마지막으로 토글되는 순간
+unsigned long debounceDelay = 50;    // 디바운스 시간, 출력이 깜빡이면 증가합니다.
 
-// Create AsyncWebServer object on port 80
+// 포트 80에 AsyncWebServer 객체를 생성하기
 AsyncWebServer server(80);
 
 const char index_html[] PROGMEM = R"rawliteral(
@@ -85,7 +85,7 @@ setInterval(function ( ) {      <!--1초마다 /state 주소에 접속해서 LED
 </html>
 )rawliteral";
 
-// Replaces placeholder with button section in your web page
+// 웹페이지에서 BUTTONPLACEHOLDER를 대체함
 String processor(const String& var){    // BUTTONPLACEHOLDER를 찾아서 HTML 버튼 코드로 갈아 끼워줌
   //Serial.println(var);
   if(var == "BUTTONPLACEHOLDER"){
@@ -108,33 +108,33 @@ String outputState(){   // 현재 출력을 반환하는 함수
 }
 
 void setup(){
-  // Serial port for debugging purposes
+  // 디버깅을 위한 직렬 포트
   Serial.begin(115200);
 
   pinMode(output, OUTPUT);
   digitalWrite(output, LOW);
   pinMode(buttonPin, INPUT);
   
-  // Connect to Wi-Fi
+  // 와이파이 연결
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi..");
   }
 
-  // Print ESP Local IP Address
+  // ESP Local IP 주소 출력
   Serial.println(WiFi.localIP());
 
-  // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){  // processor 함수를 거쳐 완성된 HTML을 사용자에게 보냅니다.
+  // 웹페이지 경로
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){  // processor 함수를 거쳐 완성된 HTML을 사용자에게 보냄
     request->send_P(200, "text/html", index_html, processor);
   });
 
-  // Send a GET request to <ESP_IP>/update?state=<inputMessage>
-  server.on("/update", HTTP_GET, [] (AsyncWebServerRequest *request) {    // 주소 뒤에 붙은 state 값을 읽어서 digitalWrite(output, 값)으로 실제 LED를 켜거나 끕니다.
+  // GET request를 ESP_IP>/update?state=<inputMessage>로 보냄
+  server.on("/update", HTTP_GET, [] (AsyncWebServerRequest *request) {    // 주소 뒤에 붙은 state 값을 읽어서 digitalWrite(output, 값)으로 실제 LED를 켜거나 끔
     String inputMessage;
     String inputParam;
-    // GET input1 value on <ESP_IP>/update?state=<inputMessage>
+    // GET input1 값은 <ESP_IP>/update?state=<inputMessage>
     if (request->hasParam(PARAM_INPUT_1)) {
       inputMessage = request->getParam(PARAM_INPUT_1)->value();
       inputParam = PARAM_INPUT_1;
@@ -149,46 +149,46 @@ void setup(){
     request->send(200, "text/plain", "OK");
   });
 
-  // Send a GET request to <ESP_IP>/state
+  // GET request를 <ESP_IP>/state로 보냄
   server.on("/state", HTTP_GET, [] (AsyncWebServerRequest *request) {
     request->send(200, "text/plain", String(digitalRead(output)).c_str());
   });
-  // Start server
+  // 서버 시작
   server.begin();
 }
   
 void loop() {
-  // read the state of the switch into a local variable:
+  // 스위치의 상태를 로컬 변수로 읽어냄
   int reading = digitalRead(buttonPin);
 
-  // check to see if you just pressed the button
+  // 버튼을 누른건지 확인
   // (i.e. the input went from LOW to HIGH), and you've waited long enough
   // since the last press to ignore any noise:
 
-  // If the switch changed, due to noise or pressing:
+  // 소음이나 누르는 행위로 인해 스위치가 변경된 경우
   if (reading != lastButtonState) {
     // reset the debouncing timer
     lastDebounceTime = millis();
   }
 
   if ((millis() - lastDebounceTime) > debounceDelay) {    // 버튼의 상태 변화가 debounceDelay(50ms)보다 오래 유지될 때만 "아, 진짜로 사람이 눌렀구나!"라고 판단하여 ledState를 반전
-    // whatever the reading is at, it's been there for longer than the debounce
-    // delay, so take it as the actual current state:
+    // reading이 어떤 상태든 debounce보다 오래 존재했을 경우
+    // 지연 상태를 실제 현재 상태로 받아들임
 
-    // if the button state has changed:
+    // 버튼 상태가 변경된 경우
     if (reading != buttonState) {
       buttonState = reading;
 
-      // only toggle the LED if the new button state is HIGH
+      // 새 버튼 상태가 HIGH일 때만 LED를 토글
       if (buttonState == HIGH) {
         ledState = !ledState;
       }
     }
   }
 
-  // set the LED:
+  // LED 설정
   digitalWrite(output, ledState);   // digitalWrite(output, ledState)를 통해 웹에서 명령을 내렸든, 손가락으로 버튼을 눌렀든 최종 상태를 LED에 반영
 
-  // save the reading. Next time through the loop, it'll be the lastButtonState:
+  // 다음 loop에서 사용할 lastButtonState에 reading를 저장
   lastButtonState = reading;
 }
