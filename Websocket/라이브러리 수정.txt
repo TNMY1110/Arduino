@@ -1,0 +1,44 @@
+수정사항
+
+### SocketIoClient.h ### 
+
+#define DEFAULT_URL "/socket.io/?EIO=4&transport=websocket"	// EIO=4 추가
+
+### SocketIoClient.cpp ###
+
+case WStype_CONNECTED:
+	SOCKETIOCLIENT_DEBUG("[SIoC] Connected to url: %s\n",  payload);
+	_webSocket.sendTXT("40");	// 추가
+	break;
+// 주석처리
+/*if(millis() - _lastPing > PING_INTERVAL) {
+	_webSocket.sendTXT("2");
+	_lastPing = millis();
+}*/
+
+### SocketIOclient.h ###
+
+// EIO=4 변경
+SocketIOclient(void);
+    virtual ~SocketIOclient(void);
+
+    void begin(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=4", const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
+    void begin(String host, uint16_t port, String url = "/socket.io/?EIO=4", String protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
+
+#ifdef HAS_SSL
+    void beginSSL(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=4", const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
+    void beginSSL(String host, uint16_t port, String url = "/socket.io/?EIO=4", String protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
+#ifndef SSL_AXTLS
+    void beginSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=4", const char * CA_cert = NULL, const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
+    void setSSLClientCertKey(const char * clientCert = NULL, const char * clientPrivateKey = NULL);
+#if defined(SSL_BARESSL)
+    void beginSSLWithCA(const char * host, uint16_t port, const char * url = "/socket.io/?EIO=4", BearSSL::X509List * CA_cert = NULL, const char * protocol = "arduino", uint32_t pingInterval = 60 * 1000, uint32_t pongTimeout = 90 * 1000, uint8_t disconnectTimeoutCount = 5);
+    void setSSLClientCertKey(BearSSL::X509List * clientCert = NULL, BearSSL::PrivateKey * clientPrivateKey = NULL);
+
+### SocketIOclient.cpp ###
+case WStype_CONNECTED: {
+    DEBUG_WEBSOCKETS("[wsIOc] Connected to url: %s\n", payload);
+    /* WebSocketsClient::sendTXT("2probe");			// 주석처리
+    WebSocketsClient::sendTXT(eIOtype_UPGRADE); */
+    WebSocketsClient::sendTXT("40");	// 추가
+    runIOCbEvent(sIOtype_CONNECT, payload, length);

@@ -45,10 +45,8 @@ void gettemphumi();
 void handleevents()
 {
   gettemphumi();
-  webString = "{\"temperature\": \"" + String(temp) + "\", \"humidity\": \"" + String(humi) + "\" }";
-  webString.toCharArray(ch, webString.length()+1);
-  Serial.println(ch);
-  webSocket.emit("events", ch);
+  String webString = "{\"temperature\":\""+String(temp)+"\",\"humidity\":\""+String(humi)+"\"}";
+  webSocket.emit("events", webString.c_str());
   yield();
 }
 
@@ -77,9 +75,10 @@ void setup()
   Serial.println("WiFi connected");
   Serial.println(WiFi.localIP());
 
+  webSocket.begin(serverIp, port, "/socket.io/?EIO=4&transport=websocket");
   webSocket.on("connect", handleconnect);
   webSocket.on("led_control", handleled);
-  webSocket.begin(serverIp, port);
+  // webSocket.begin(serverIp, port);
 }
 
 void loop() 
@@ -93,7 +92,7 @@ void loop()
     handleevents();
   }
 
-  delay(1000);
+  delay(10);
 }
 
 
