@@ -5,15 +5,15 @@
 bool ledState = false;
 
 // WiFi settings
-const char *ssid = "5층";             // Replace with your WiFi name
-const char *password = "48864886";   // Replace with your WiFi password
+const char *ssid = "5층";
+const char *password = "48864886";
 
 // MQTT Broker settings
-const char *mqtt_broker = "broker.emqx.io";  // EMQX broker endpoint
-const char *mqtt_topic = "emqx/esp8266";     // MQTT topic
-const char *mqtt_username = "emqx";  // MQTT username for authentication
-const char *mqtt_password = "public";  // MQTT password for authentication
-const int mqtt_port = 1883;  // MQTT port (TCP)
+const char *mqtt_broker = "broker.emqx.io";
+const char *mqtt_topic = "emqx/esp8266/led-bj";
+const char *mqtt_username = "emqx";
+const char *mqtt_password = "public";
+const int mqtt_port = 1883;
 
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
@@ -49,8 +49,8 @@ void connectToMQTTBroker() {
         Serial.printf("Connecting to MQTT Broker as %s.....\n", client_id.c_str());
         if (mqtt_client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
             Serial.println("Connected to MQTT broker");
-            mqtt_client.subscribe(mqtt_topic, qos=1);
-            // Publish message upon successful connection
+            mqtt_client.subscribe(mqtt_topic);
+            
             mqtt_client.publish(mqtt_topic, "Hi EMQX I'm ESP8266 ^^");
         } else {
             Serial.print("Failed to connect to MQTT broker, rc=");
@@ -67,16 +67,16 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
     Serial.print("Message:");
     String message;
     for (int i = 0; i < length; i++) {
-        message += (char) payload[i];  // Convert *byte to string
+        message += (char) payload[i];
     }
-    // Control the LED based on the message received
+    
     if (message == "on" && !ledState) {
-        digitalWrite(LED, HIGH);  // Turn on the LED
+        digitalWrite(LED, HIGH);
         ledState = true;
         Serial.println("LED is turned on");
     }
     if (message == "off" && ledState) {
-        digitalWrite(LED, LOW); // Turn off the LED
+        digitalWrite(LED, LOW);
         ledState = false;
         Serial.println("LED is turned off");
     }
